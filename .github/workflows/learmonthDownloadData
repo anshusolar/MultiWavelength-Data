@@ -1,0 +1,41 @@
+import requests
+import os
+from datetime import datetime
+
+# Function to download .srs file
+def download_srs_file(date_str, save_dir="downloaded_data"):
+    """
+    Download Learmonth .srs file for a given date.
+    
+    Parameters:
+    - date_str: Date string in 'YYYY-MM-DD' format (e.g., '2024-01-01')
+    - save_dir: Directory to save the downloaded file
+    
+    Returns:
+    - Path to the downloaded file
+    """
+    date = datetime.strptime(date_str, "%Y-%m-%d")
+    year_short = str(date.year)[-2:]  # Last two digits of year (e.g., '24' for 2024)
+    file_name = f"LM{year_short}{date.strftime('%m%d')}.srs"  # e.g., LM240101.srs
+    url = f"https://downloads.sws.bom.gov.au/wdc/wdc_spec/data/learmonth/raw/{year_short}/{file_name}"
+    
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    
+    save_path = os.path.join(save_dir, file_name)
+    
+    print(f"Downloading {url}...")
+    response = requests.get(url, stream=True)
+    if response.status_code == 200:
+        with open(save_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+        print(f"Saved to {save_path}")
+        return save_path
+    else:
+        raise ValueError(f"Failed to download file. Status code: {response.status_code}")
+
+# Download data for January 1, 2024
+date_str = "2015-11-04"
+file_path = download_srs_file(date_str)
